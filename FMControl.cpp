@@ -26,9 +26,9 @@
 
 #define SWAP_BYTES_16(a) (((a >> 8) & 0x00FFU) | ((a << 8) & 0xFF00U))
 
-const float        DEEMPHASIS_GAIN_DB  = 0.0F;
-const float        PREEMPHASIS_GAIN_DB = 13.0F;
-const float        FILTER_GAIN_DB      = 0.0F;
+const float        DEEMPHASIS_GAIN_DB  = 8.0F;  // Changed audio gain to  adjust  TX level to  USRP
+const float        PREEMPHASIS_GAIN_DB = 0.0F;  // Changed audio gain to  adjust  TX level from  USRP
+const float        FILTER_GAIN_DB      = 2.0F;  // Changed audio gain to  adjust  TX level to  USRP
 const unsigned int FM_MASK             = 0x00000FFFU;
 
 CFMControl::CFMControl(CFMNetwork* network) :
@@ -79,17 +79,17 @@ bool CFMControl::writeModem(const unsigned char* data, unsigned int length)
 
     m_incomingRFAudio.addData(data + 1U, length - 1U);
     unsigned int bufferLength = m_incomingRFAudio.dataSize();
-    if (bufferLength > 252U)//168 samples 12-bit
-        bufferLength = 252U;
+        if (bufferLength > 240U)    //Changed to 160 samples 12-bit
+        bufferLength = 240U;        //Changed to 160 samples 12-bit
 
     if (bufferLength >= 3U) {
         bufferLength = bufferLength - bufferLength % 3U; //round down to nearest multiple of 3
-        unsigned char bufferData[252U];        
+        unsigned char bufferData[240U];     //Changed to 240 for 160 samples 12-bit   
         m_incomingRFAudio.getData(bufferData, bufferLength);
 
         unsigned int pack = 0U;
         unsigned char* packPointer = (unsigned char*)&pack;
-        float out[168U];
+        float out[160U];    //Changed to 160 samples 12-bit
         unsigned int nOut = 0U;
         short unpackedSamples[2U];
 
@@ -133,11 +133,11 @@ unsigned int CFMControl::readModem(unsigned char* data, unsigned int space)
     if (m_network == NULL)
         return 0U;
 
-    if (space > 252U)
-        space = 252U;
+    if (space > 240U)   //Changed to 240 for 160 samples 12-bit
+        space = 240U;   //Changed to 240 for 160 samples 12-bit
 
-    float netData[168U]; // Modem can handle up to 168 samples at a time
-    unsigned int length = m_network->read(netData, 168U);
+    float netData[160U]; // Modem can handle up to 160 samples at a time
+    unsigned int length = m_network->read(netData, 160U);   //Changed to 160 samples 12-bit
     if (length == 0U)
         return 0U;
 
