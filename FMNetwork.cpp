@@ -221,11 +221,12 @@ void CFMNetwork::clock(unsigned int ms)
 		return;
 
 	// Check if the data is for us
-	if (!CUDPSocket::match(addr, m_addr)) {
-		LogMessage("FM packet received from an invalid source");
-		return;
+	if (m_protocol == FMNP_USRP) {
+		if (!CUDPSocket::match(addr, m_addr)) {
+			LogMessage("FM packet received from an invalid source");
+			return;
+		}
 	}
-
 	if (!m_enabled)
 		return;
 
